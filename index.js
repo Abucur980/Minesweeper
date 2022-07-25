@@ -1,26 +1,24 @@
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = "363"
-canvas.height = "363"
+canvas.width = "360";
+canvas.height = "360";
 
-let col = 1;
-let line = 1;
-let gridItems = 0;
-while (gridItems < 81) {
-    console.log(col, line);
-    if (gridItems % 2 === 0) {
-        ctx.fillStyle = '#59A608';
-    } else {
-        ctx.fillStyle = '#836539';
+function generateGrid(x, y, width, height, cells, color1, color2) {
+    for (let i = 0; i < cells; ++i) {
+        if (i % 2 === 0) {
+            ctx.fillStyle = color1;
+        } else {
+            ctx.fillStyle = color2;
+        }
+        ctx.fillRect(x, y, width, height);
+        if (x < canvas.width - (width + height / 2)) {
+            x += 40;
+        } else {
+            x = 0;
+            y += 40;
+        }
     }
-    
-    ctx.fillRect(col, line, 40, 40);
-    if (col < 300) {
-        col += 40;
-    } else {
-        col = 1;
-        line += 40;
-    }
-    ++gridItems;
 }
+
+generateGrid(0, 0, 40, 40, 81, '#59A608', '#836539');
