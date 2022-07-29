@@ -12,41 +12,43 @@ function Cell(x, y, width, height) {
     this.color;
     this.isMine = false;
 
-    this.draw = function() {
+    this.draw = function(i, j) {
         ctx.fillStyle = this.color;
         ctx.fillRect(x, y, width, height);
+        ctx.font = "20px Arial";
+        ctx.fillStyle = "black";
+        ctx.strokeRect(x, y, width, height)
+        ctx.fillText((i + "," + j), x + 6, y + 25);
     }
 }
 
-let cellArray = [];
+let cellMatrix = new Array(9);
 
-function generateGrid(x, y, width, height, cells, color1, color2) {
-    for (let i = 0; i < cells; ++i) {
-        // create object
-        cellArray.push(new Cell(x, y, width, height));
-        // create object coordinates
-        if (x < canvas.width - (width + height / 2)) {
-            x += 40;
-        } else {
-            x = 0;
-            y += 40;
+for (let i = 0; i < cellMatrix.length; ++i) {
+    cellMatrix[i] = new Array(9);
+}
+
+function generateGrid(x, y, width, height, color1, color2) {
+    for (let line = 0; line < 9; ++line) {
+        for (let col = 0; col < 9; ++col) {
+            // create object
+            cellMatrix[line][col] = new Cell(x, y, width, height);
+            // create object coordinates
+            if (x < canvas.width - (width + height / 2)) {
+                x += 40;
+            } else {
+                x = 0;
+                y += 40;
+            }
+            cellMatrix[line][col].color = color1;
+            cellMatrix[line][col].draw(line, col);
         }
-        // pick colors for grid cells
-        if (i % 2 === 0) {
-            cellArray[i].color = color1;
-        } else {
-            cellArray[i].color = color2;
-        }
-        if(cellArray[i].isMine === true) {
-            cellArray[i].color = "red";
-        }
-        cellArray[i].draw();
     }
 }
 
-generateGrid(0, 0, 40, 40, 81, '#59A608', '#5BB318');
+generateGrid(0, 0, 40, 40, '#59A608', '#5BB318');
 
-function isMine(cells) {
+function insertMines(cells) {
     let mines = [];
     // plant 10 mines
     let i = 0;
@@ -59,15 +61,22 @@ function isMine(cells) {
             let randomMine = Math.floor(Math.random() * 81);
         }
     }
-    
-    for (let i = 0; i < cells.length; ++i) {
-        if (mines.includes(i)) {
-            cells[i].isMine = true;
+    let minePosition = 0;
+    let index = 0;
+    for (let line = 0; line < 9; ++line) {
+        for (let col = 0; col < 9; ++col) {
+            ++minePosition;
+            if (mines.includes(minePosition)) {
+                cells[line][col].isMine = true;
+                ++index;
+            }
         }
     }
 }
 
-isMine(cellArray);
+insertMines(cellMatrix);
+
+
 
 let mouseClick = {
     x: undefined,
@@ -78,14 +87,19 @@ canvas.addEventListener('click', function(event) {
     mouseClick.x = event.offsetX;
     mouseClick.y = event.offsetY;
     if (mouseClick.x >= 0 && mouseClick.y >= 0 && mouseClick.y <= 360 && mouseClick.x <= 360) {
-        for(let i = 0; i < cellArray.length; ++i){
-        // console.log(cellArray[cell]);
-            if (cellArray[i].isMine == true && (mouseClick.x >= cellArray[i].x && mouseClick.x <= cellArray[i].x + cellArray[i].width) && (mouseClick.y >= cellArray[i].y && mouseClick.y <= cellArray[i].y + cellArray[i].width)) {
-                cellArray[i].color = "red";
-                cellArray[i].draw();
-                break;
+// reveal mine
+        for (let line = 0; line < 9; ++line) {
+            for (let col = 0; col < 9; ++col) {
+                if (cellMatrix[line][col].isMine === true &&
+                    (mouseClick.x >= cellMatrix[line][col].x && mouseClick.x <= cellMatrix[line][col].x + cellMatrix[line][col].width) &&
+                    (mouseClick.y >= cellMatrix[line][col].y && mouseClick.y <= cellMatrix[line][col].y + cellMatrix[line][col].width)) {
+                    cellMatrix[line][col].x += 40;
+                    cellMatrix[line][col].color = "red";
+                    cellMatrix[line][col].draw(line, col);
+                    break;
+                }
             }
         }
     }
-    console.log(mouseClick.x, mouseClick.y);
+    // console.log(mouseClick.x, mouseClick.y);
 });
