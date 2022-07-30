@@ -11,14 +11,21 @@ function Cell(x, y, width, height) {
     this.height = height;
     this.color;
     this.isMine = false;
+    this.isHint = 0;
 
-    this.draw = function(i, j) {
+    this.draw = function() {
         ctx.fillStyle = this.color;
         ctx.fillRect(x, y, width, height);
-        ctx.font = "20px Arial";
-        ctx.fillStyle = "black";
+        // ctx.font = "20px Arial";
+        // ctx.fillStyle = "black";
         ctx.strokeRect(x, y, width, height)
-        ctx.fillText((i + "," + j), x + 6, y + 25);
+        // ctx.fillText((i + "," + j), x + 6, y + 25);
+    }
+
+    this.fillWithNumber = function() {
+        ctx.font = "25px Arial";
+        ctx.fillStyle = "black";
+        ctx.fillText((this.isHint), x + 14, y + 28);
     }
 }
 
@@ -41,7 +48,7 @@ function generateGrid(x, y, width, height, color1, color2) {
                 y += 40;
             }
             cellMatrix[line][col].color = color1;
-            cellMatrix[line][col].draw(line, col);
+            cellMatrix[line][col].draw();
         }
     }
 }
@@ -76,7 +83,68 @@ function insertMines(cells) {
 
 insertMines(cellMatrix);
 
+function insertHints() {
+    for (let line = 0; line < 9; ++line) {
+        for (let col = 0; col < 9; ++col) {
+            if (cellMatrix[line][col].isMine === true) {
+                checkSubMatrix(line, col);
+            } 
+        }
+    }
+}
 
+function checkSubMatrix(line, col) {
+    let startLine, startCol, endLine, endCol;
+
+    if (line >= 1) {
+        startLine = line - 1;
+    } else {
+        startLine = line;
+    }
+    if (line <= 7) {
+        endLine = line + 1;
+    } else {
+        endLine = line;
+    }
+
+    if (col >= 1) {
+        startCol = col - 1;
+    } else {
+        startCol = col;
+    }
+    if (col <= 7) {
+        endCol = col + 1;
+    } else {
+        endCol = col;
+    }
+
+    for (let i = startLine; i <= endLine; ++i) {
+        for (let j = startCol; j <= endCol; ++j) {
+            if (cellMatrix[i][j].isMine === false) {
+                // console.log(startLine, startCol);
+                cellMatrix[i][j].color = "pink";
+                cellMatrix[i][j].isHint += 1;
+                // cellMatrix[i][j].draw(i, j);
+            }
+        }
+    }
+
+}
+
+insertHints();
+
+// function findStartAndEndCell(startCell, endCell, lineOrCol) {
+//     if (lineOrCol >= 1) {
+//         startCell = lineOrCol - 1;
+//     } else {
+//         startCell = lineOrCol;
+//     }
+//     if (lineOrCol <= 7) {
+//         endCell = lineOrCol + 1;
+//     } else {
+//         endCell = lineOrCol;
+//     }
+// }
 
 let mouseClick = {
     x: undefined,
@@ -90,12 +158,15 @@ canvas.addEventListener('click', function(event) {
 // reveal mine
         for (let line = 0; line < 9; ++line) {
             for (let col = 0; col < 9; ++col) {
-                if (cellMatrix[line][col].isMine === true &&
-                    (mouseClick.x >= cellMatrix[line][col].x && mouseClick.x <= cellMatrix[line][col].x + cellMatrix[line][col].width) &&
-                    (mouseClick.y >= cellMatrix[line][col].y && mouseClick.y <= cellMatrix[line][col].y + cellMatrix[line][col].width)) {
-                    cellMatrix[line][col].x += 40;
-                    cellMatrix[line][col].color = "red";
-                    cellMatrix[line][col].draw(line, col);
+                if (cellMatrix[line][col].isMine && clickCell(line, col)) {
+                    changeColor("red", line, col)
+                    break;
+                } else if (cellMatrix[line][col].isHint == 0 && clickCell(line, col)) {
+                    changeColor("#CA955C", line, col);
+                    break;
+                } else if (cellMatrix[line][col].isHint > 0 && clickCell(line, col)) {
+                    changeColor("#76BA99", line, col);
+                    cellMatrix[line][col].fillWithNumber();
                     break;
                 }
             }
@@ -103,3 +174,15 @@ canvas.addEventListener('click', function(event) {
     }
     // console.log(mouseClick.x, mouseClick.y);
 });
+
+function changeColor(color, line, col) {
+    cellMatrix[line][col].color = color;
+    cellMatrix[line][col].draw();
+}
+
+function clickCell (line, col) {
+    if ((mouseClick.x >= cellMatrix[line][col].x && mouseClick.x <= cellMatrix[line][col].x + cellMatrix[line][col].width) &&
+        (mouseClick.y >= cellMatrix[line][col].y && mouseClick.y <= cellMatrix[line][col].y + cellMatrix[line][col].width)) {
+        return true;
+    }
+}
