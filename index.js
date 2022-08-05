@@ -12,8 +12,9 @@ function Cell(x, y, width, height) {
     this.color;
     this.isMine = false;
     this.isHint = 0;
+    this.isRevealed = false;
 
-    this.draw = function() {
+    this.fillWithColor = function() {
         ctx.fillStyle = this.color;
         ctx.fillRect(x, y, width, height);
         ctx.strokeRect(x, y, width, height);
@@ -82,6 +83,7 @@ insertMines(cellMatrix);
 function insertHints() {
     for (let line = 0; line < 9; ++line) {
         for (let col = 0; col < 9; ++col) {
+            // insert the hints around the mine
             if (cellMatrix[line][col].isMine === true) {
                 checkHintSubMatrix(line, col);
             } 
@@ -106,11 +108,11 @@ function checkHintSubMatrix(line, col) {
             }
         }
     }
-
 }
 
 function getStartCell(lineOrCol) {
     var startCell;
+    // to avoid looping outside the matrix
     if (lineOrCol >= 1) {
         startCell = lineOrCol - 1;
     } else {
@@ -121,6 +123,7 @@ function getStartCell(lineOrCol) {
 
 function getEndCell(lineOrCol) {
     var endCell;
+    // to avoid looping outside the matrix
     if (lineOrCol <= 7) {
         endCell = lineOrCol + 1;
     } else {
@@ -131,10 +134,39 @@ function getEndCell(lineOrCol) {
 
 insertHints();
 
-function revealEmptyCells() {
-
+function getAdjacentCells(line, col) {
+    const sLine = getStartCell(line);
+    const sCol = getStartCell(col);
+    const eLine = getEndCell(line);
+    const eCol = getEndCell(col);
+    let cells = [];
+    for (let i = sLine; i <= eLine; ++i) {
+        for (let j = sCol; j <= eCol; ++j) {
+            if (cellMatrix[i][j].isHint === 0) {
+                changeColor("#CA955C", i, j);
+                cellMatrix[i][j].line = i;
+                cellMatrix[i][j].col = j;
+            } 
+            else if (cellMatrix[i][j].isHint > 0) {
+                changeColor("#76BA99", i, j);
+                cellMatrix[i][j].fillWithNumber();
+            }
+            cells.push(cellMatrix[i][j]);
+        }
+    }
+    return cells;
 }
 
+function revealCell(line, col) {
+    let subMatrix = getAdjacentCells(line, col);    
+    for (let i = 0; i < subMatrix.length; ++i) {
+        setTimeout(() => {
+            revealCell(subMatrix[i].line, subMatrix[i].col);
+        }, 0);
+    }
+}
+
+// mouse click coordinates
 let mouseClick = {
     x: undefined,
     y: undefined
@@ -147,15 +179,17 @@ canvas.addEventListener('click', function(event) {
         for (let line = 0; line < 9; ++line) {
             for (let col = 0; col < 9; ++col) {
                 if (cellMatrix[line][col].isMine && isCurrentCellClicked(line, col)) {
-                    // mine cell
+                    // reveal mine cell - game over
                     changeColor("red", line, col)
                     break;
                 } else if (cellMatrix[line][col].isHint == 0 && isCurrentCellClicked(line, col)) {
-                    // empty cell
-                    changeColor("#CA955C", line, col);
+                    // reveal empty cell 
+                    // changeColor("#CA955C", line, col);
+                    revealCell(line, col);
+                    // console.log(line,col);
                     break;
                 } else if (cellMatrix[line][col].isHint > 0 && isCurrentCellClicked(line, col)) {
-                    // hint cell
+                    // reveal hint cell
                     changeColor("#76BA99", line, col);
                     cellMatrix[line][col].fillWithNumber();
                     break;
@@ -168,7 +202,7 @@ canvas.addEventListener('click', function(event) {
 
 function changeColor(color, line, col) {
     cellMatrix[line][col].color = color;
-    cellMatrix[line][col].draw();
+    cellMatrix[line][col].fillWithColor();
 }
 
 function isCurrentCellClicked (line, col) {
@@ -177,3 +211,16 @@ function isCurrentCellClicked (line, col) {
         return true;
     }
 }
+
+// for (let line = 0; line < 9; ++line) {
+//     for (let col = 0; col < 9; ++col) {
+//         if (cellMatrix[line][col].isMine) {
+//             changeColor("red", line, col)
+//         } else if (cellMatrix[line][col].isHint == 0) {
+//             changeColor("#CA955C", line, col);
+//         } else if (cellMatrix[line][col].isHint > 0) {
+//             changeColor("#76BA99", line, col);
+//             cellMatrix[line][col].fillWithNumber();
+//         }
+//     }
+// }
