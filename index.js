@@ -62,7 +62,7 @@ function insertMines(cells) {
             mines.push(randomMine);
             ++i;
         } else {
-            let randomMine = Math.floor(Math.random() * 81);
+            randomMine = Math.floor(Math.random() * 81);
         }
     }
     let minePosition = 0;
@@ -142,7 +142,6 @@ function getAdjacentCells(line, col) {
     let cells = [];
     for (let i = sLine; i <= eLine; ++i) {
         for (let j = sCol; j <= eCol; ++j) {
-            // console.log("inside adjacent");
             if (cellMatrix[i][j].isHint === 0 && cellMatrix[i][j].isMine !== true) {
                 changeColor("#CA955C", i, j);
                 // cellMatrix[i][j].isRevealed = true;
@@ -165,15 +164,13 @@ function revealCell(line, col) {
 
     subMatrix.forEach(element => {
         setTimeout(() => {
-            // console.log(element.line, element.col);
             if (element.line != undefined || element.col != undefined) {
                 if (cellMatrix[element.line][element.col].isMine === false && cellMatrix[element.line][element.col].isRevealed === false) {
                     cellMatrix[element.line][element.col].isRevealed = true;
                     revealCell(element.line, element.col);
-                    // console.log("inside reveal");
                 }
             }
-        }, 80);
+        }, 40);
     });
 
 }
@@ -192,13 +189,16 @@ canvas.addEventListener('click', function(event) {
             for (let col = 0; col < 9; ++col) {
                 if (cellMatrix[line][col].isMine && isCurrentCellClicked(line, col)) {
                     // reveal mine cell - game over
-                    changeColor("red", line, col)
+                    changeColor("red", line, col);
+                    ctx.beginPath();
+                    ctx.arc(cellMatrix[line][col].x + 20, cellMatrix[line][col].y + 20, 10, 0, 2 * Math.PI);
+                    ctx.fillStyle = "black";
+                    ctx.fill();
+                    ctx.stroke();
                     break;
                 } else if (cellMatrix[line][col].isHint == 0 && isCurrentCellClicked(line, col)) {
                     // reveal empty cell 
-                    // changeColor("#CA955C", line, col);
                     revealCell(line, col);
-                    // console.log(line,col);
                     break;
                 } else if (cellMatrix[line][col].isHint > 0 && isCurrentCellClicked(line, col)) {
                     // reveal hint cell
@@ -209,7 +209,6 @@ canvas.addEventListener('click', function(event) {
             }
         }
     }
-    // console.log(mouseClick.x, mouseClick.y);
 });
 
 function changeColor(color, line, col) {
