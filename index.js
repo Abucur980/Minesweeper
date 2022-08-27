@@ -142,14 +142,17 @@ function getAdjacentCells(line, col) {
     let cells = [];
     for (let i = sLine; i <= eLine; ++i) {
         for (let j = sCol; j <= eCol; ++j) {
-            if (cellMatrix[i][j].isHint === 0) {
+            // console.log("inside adjacent");
+            if (cellMatrix[i][j].isHint === 0 && cellMatrix[i][j].isMine !== true) {
                 changeColor("#CA955C", i, j);
+                // cellMatrix[i][j].isRevealed = true;
                 cellMatrix[i][j].line = i;
                 cellMatrix[i][j].col = j;
             } 
             else if (cellMatrix[i][j].isHint > 0) {
                 changeColor("#76BA99", i, j);
                 cellMatrix[i][j].fillWithNumber();
+                // cellMatrix[i][j].isRevealed = true;
             }
             cells.push(cellMatrix[i][j]);
         }
@@ -158,12 +161,21 @@ function getAdjacentCells(line, col) {
 }
 
 function revealCell(line, col) {
-    let subMatrix = getAdjacentCells(line, col);    
-    for (let i = 0; i < subMatrix.length; ++i) {
+    var subMatrix = getAdjacentCells(line, col);
+
+    subMatrix.forEach(element => {
         setTimeout(() => {
-            revealCell(subMatrix[i].line, subMatrix[i].col);
-        }, 0);
-    }
+            // console.log(element.line, element.col);
+            if (element.line != undefined || element.col != undefined) {
+                if (cellMatrix[element.line][element.col].isMine === false && cellMatrix[element.line][element.col].isRevealed === false) {
+                    cellMatrix[element.line][element.col].isRevealed = true;
+                    revealCell(element.line, element.col);
+                    // console.log("inside reveal");
+                }
+            }
+        }, 80);
+    });
+
 }
 
 // mouse click coordinates
@@ -211,16 +223,3 @@ function isCurrentCellClicked (line, col) {
         return true;
     }
 }
-
-// for (let line = 0; line < 9; ++line) {
-//     for (let col = 0; col < 9; ++col) {
-//         if (cellMatrix[line][col].isMine) {
-//             changeColor("red", line, col)
-//         } else if (cellMatrix[line][col].isHint == 0) {
-//             changeColor("#CA955C", line, col);
-//         } else if (cellMatrix[line][col].isHint > 0) {
-//             changeColor("#76BA99", line, col);
-//             cellMatrix[line][col].fillWithNumber();
-//         }
-//     }
-// }
