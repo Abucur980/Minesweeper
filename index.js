@@ -154,7 +154,7 @@ function getAdjacentCells(line, col) {
             else if (cellMatrix[i][j].isHint > 0) {
                 changeColor("#76BA99", i, j);
                 cellMatrix[i][j].fillWithNumber();
-                // cellMatrix[i][j].isRevealed = true;
+                cellMatrix[i][j].isRevealed = true;
             }
             cells.push(cellMatrix[i][j]);
         }
@@ -175,9 +175,7 @@ function revealCell(line, col) {
             }
         }, 40);
     });
-
 }
-
 // mouse click coordinates
 let mouseClick = {
     x: undefined,
@@ -185,7 +183,6 @@ let mouseClick = {
 }
 
 canvas.addEventListener('click', function(event) {
-    event.preventDefault()
     mouseClick.x = event.offsetX;
     mouseClick.y = event.offsetY;
     
@@ -200,6 +197,7 @@ canvas.addEventListener('click', function(event) {
                     ctx.fillStyle = "black";
                     ctx.fill();
                     ctx.stroke();
+                    winOrLose("You lost!","Black");
                     break;
                 } else if (cellMatrix[line][col].isHint == 0 && isCurrentCellClicked(line, col)) {
                     // reveal empty cell 
@@ -209,12 +207,12 @@ canvas.addEventListener('click', function(event) {
                     // reveal hint cell
                     changeColor("#76BA99", line, col);
                     cellMatrix[line][col].fillWithNumber();
+                    cellMatrix[line][col].isRevealed = true;
                     break;
                 }
             }
         }
     }
-    event.preventDefault()
 });
 
 let flagsLeft = 10;
@@ -225,7 +223,6 @@ canvas.addEventListener('contextmenu', function(event) {
 
     let flagIcon = new Image();
     flagIcon.src = "flag.png";
-
     let flagScore = document.getElementsByTagName("span")[0];
 
     if (mouseClick.x >= 0 && mouseClick.y >= 0 && mouseClick.y <= 360 && mouseClick.x <= 360) {
@@ -247,7 +244,6 @@ canvas.addEventListener('contextmenu', function(event) {
             }
         }
     }
-
 });
 
 function changeColor(color, line, col) {
@@ -260,4 +256,11 @@ function isCurrentCellClicked (line, col) {
         (mouseClick.y >= cellMatrix[line][col].y && mouseClick.y <= cellMatrix[line][col].y + cellMatrix[line][col].width)) {
         return true;
     }
+}
+
+function winOrLose (text, color) {
+    canvas.classList.add("d-none");
+    document.getElementsByClassName("win-lose-container")[0].style.backgroundColor = color;
+    document.getElementsByClassName("win-lose-status")[0].textContent = text;
+    document.getElementsByClassName("win-lose-container")[0].classList.remove("d-none"); 
 }
