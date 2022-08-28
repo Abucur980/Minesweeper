@@ -1,6 +1,8 @@
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 
+canvas.oncontextmenu = () => false;
+
 canvas.width = "360";
 canvas.height = "360";
 
@@ -13,6 +15,7 @@ function Cell(x, y, width, height) {
     this.isMine = false;
     this.isHint = 0;
     this.isRevealed = false;
+    this.isFlagged = false;
 
     this.fillWithColor = function() {
         ctx.fillStyle = this.color;
@@ -62,7 +65,7 @@ function insertMines(cells) {
             mines.push(randomMine);
             ++i;
         } else {
-            randomMine = Math.floor(Math.random() * 81);
+            let randomMine = Math.floor(Math.random() * 81);
         }
     }
     let minePosition = 0;
@@ -182,8 +185,10 @@ let mouseClick = {
 }
 
 canvas.addEventListener('click', function(event) {
+    event.preventDefault()
     mouseClick.x = event.offsetX;
     mouseClick.y = event.offsetY;
+    
     if (mouseClick.x >= 0 && mouseClick.y >= 0 && mouseClick.y <= 360 && mouseClick.x <= 360) {
         for (let line = 0; line < 9; ++line) {
             for (let col = 0; col < 9; ++col) {
@@ -209,6 +214,40 @@ canvas.addEventListener('click', function(event) {
             }
         }
     }
+    event.preventDefault()
+});
+
+let flagsLeft = 10;
+
+canvas.addEventListener('contextmenu', function(event) {
+    mouseClick.x = event.offsetX;
+    mouseClick.y = event.offsetY;
+
+    let flagIcon = new Image();
+    flagIcon.src = "flag.png";
+
+    let flagScore = document.getElementsByTagName("span")[0];
+
+    if (mouseClick.x >= 0 && mouseClick.y >= 0 && mouseClick.y <= 360 && mouseClick.x <= 360) {
+        for (let line = 0; line < 9; ++line) {
+            for (let col = 0; col < 9; ++col) {
+                if (cellMatrix[line][col].color == "#59A608" && isCurrentCellClicked(line, col) && cellMatrix[line][col].isFlagged == false) {
+                    ctx.drawImage(flagIcon, cellMatrix[line][col].x + 8, cellMatrix[line][col].y + 8, 25, 25);
+                    --flagsLeft;
+                    flagScore.textContent = flagsLeft;
+                    cellMatrix[line][col].isFlagged = true;
+                    break;
+                } else if (cellMatrix[line][col].color == "#59A608" && isCurrentCellClicked(line, col) && cellMatrix[line][col].isFlagged) {
+                    changeColor("#59A608", line, col);
+                    ++flagsLeft;
+                    flagScore.textContent = flagsLeft;
+                    cellMatrix[line][col].isFlagged = false;
+                    break;
+                }
+            }
+        }
+    }
+
 });
 
 function changeColor(color, line, col) {
